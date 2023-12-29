@@ -7,10 +7,11 @@
         <title>BS5 + Alpine JS</title>
         <link
             rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"
+            href="//cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
         />
+        <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
         <script src="//unpkg.com/alpinejs" defer></script>
         <style>
             [x-cloak] { display: none !important; }
@@ -45,44 +46,67 @@
                 get alunos() {
                     return this.alunosData;
                 },
-                deletadarItem: null,
+                deletarItem: null,
                 get itemASerDeletado() {
-                    return !!(this.deletadarItem)
-                        ? this.alunos?.find(item => item.id == this.deletadarItem)
+                    return !!(this.deletarItem)
+                        ? this.alunos?.find(item => item.id == this.deletarItem)
                         : null;
                 },
                 confirmarExclusaoDeitem() {
-                    if (!this.deletadarItem) {
+                    if (!this.deletarItem) {
+                        this.toastError('Nenhum item identificado para ser deletado.');
                         return;
                     }
 
-                    this.alunosData = this.alunosData?.filter(item => item.id != this.deletadarItem);
+                    let tempCopyItem = this.itemASerDeletado;
 
-                    console.log(
-                        JSON.stringify(this.alunosData),
-                    );
+                    this.alunosData = this.alunosData?.filter(item => item.id != this.deletarItem);
 
-                    this.deletadarItem = null
+                    this.deletarItem = null;
 
-                    alert(`Item '${this.itemASerDeletado?.nome}' excluído com sucesso`);
+                    tempCopyItem && this.toastSuccess(`Item '${tempCopyItem?.nome}' excluído com sucesso`);
                 },
                 calculadoraIMC(altura, peso) {
                     return peso / (altura * altura);
                 },
                 toggleDropDown() {
                     if (this.openDropDown) {
-                        this.deletadarItem = null
+                        this.deletarItem = null
                     }
 
                     this.openDropDown = !this.openDropDown
-                }
+                },
+                toastInfo(message) {
+                    Toastify({
+                        text: message,
+                        className: 'toastify-text-info',
+                    }).showToast();
+                },
+                toastSuccess(message) {
+                    Toastify({
+                        text: message,
+                        className: 'toastify-text-success',
+                        style: {
+                            background: 'linear-gradient(to right, #00b09b, #96c93d)',
+                        }
+                    }).showToast();
+                },
+                toastError(message) {
+                    Toastify({
+                        text: message,
+                        className: 'toastify-text-success',
+                        style: {
+                            background: 'linear-gradient(to right, #000, #dc3545)',
+                        }
+                    }).showToast();
+                },
             }"
         >
             <h1>Bootstrap 5.3.2</h1>
             <div class="row">
                 <div class="col-12 p-3">
                     <div class="col-12">
-                        <pre x-text="deletadarItem"></pre>
+                        <pre x-text="deletarItem"></pre>
                     </div>
                     <table class="table table-striped table-hover">
                         <thead>
@@ -166,7 +190,7 @@
                                                         <button
                                                             type="button"
                                                             class="btn btn-sm btn-danger"
-                                                            @click="deletadarItem = aluno.id"
+                                                            @click="deletarItem = aluno.id"
                                                         >
                                                             Deletar
                                                         </button>
@@ -187,10 +211,10 @@
                         tabindex="-1"
                         aria-labelledby="modalDeletarLabel"
                         aria-modal="true" role="dialog"
-                        x-show="deletadarItem"
+                        x-show="deletarItem"
                         x-bind:class="{
-                            show: deletadarItem && itemASerDeletado,
-                            'd-block': deletadarItem && itemASerDeletado,
+                            show: deletarItem && itemASerDeletado,
+                            'd-block': deletarItem && itemASerDeletado,
                         }"
                         style="background: #000000a6;"
                     >
@@ -205,7 +229,7 @@
                                     class="btn-close"
                                     data-bs-dismiss="modal"
                                     aria-label="Fechar"
-                                    @click="deletadarItem = null"
+                                    @click="deletarItem = null"
                                 ></button>
                             </div>
                             <div class="modal-body">
@@ -220,7 +244,7 @@
                                     type="button"
                                     class="btn btn-outline-secondary"
                                     data-bs-dismiss="modal"
-                                    @click="deletadarItem = null"
+                                    @click="deletarItem = null"
                                 >Cancelar</button>
                                 <button
                                     type="button"
@@ -242,20 +266,48 @@
                         tabindex="-1"
                         aria-labelledby="modalEditarLabel"
                         aria-modal="true" role="dialog"
+                        x-show="deletarItem"
+                        x-bind:class="{
+                            show: deletarItem && itemASerDeletado,
+                            'd-block': deletarItem && itemASerDeletado,
+                        }"
                         style="background: #000000a6;"
                     >
                         <div class="modal-dialog">
                           <div class="modal-content">
                             <div class="modal-header">
-                              <h1 class="modal-title fs-5" id="modalEditarLabel">Modal title</h1>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <h1 class="modal-title text-danger fs-5" id="modalEditarLabel">
+                                  Excluir registro
+                                </h1>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                    @click="deletarItem = null"
+                                ></button>
                             </div>
                             <div class="modal-body">
-                              <p>Woo-hoo, you're reading this text in a modal!</p>
+                                <p>Tem certeza que deseja excluir o cadastro
+                                        <strong
+                                            x-text="itemASerDeletado?.nome"
+                                        ></strong>?
+                                </p>
                             </div>
                             <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                              <button type="button" class="btn btn-primary">Save changes</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal"
+                                    @click="deletarItem = null"
+                                >Cancelar</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-danger"
+                                    @click="confirmarExclusaoDeitem"
+                                >
+                                    Sim! Quero excluir esse registro
+                                </button>
                             </div>
                           </div>
                         </div>
@@ -291,6 +343,6 @@
                 </div>
             </div>
         </div>
+        <script type="text/javascript" src="//cdn.jsdelivr.net/npm/toastify-js"></script>
     </body>
-
 </html>

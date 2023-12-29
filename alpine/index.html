@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BS5 + Alpine JS</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+        <script src="//unpkg.com/alpinejs" defer></script>
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
+    </head>
+
+    <body>
+        <div
+            class="container-box px-3"
+            x-data="{
+                get alunos() {
+                    return [
+                        {
+                            id: 1,
+                            nome: 'Tiago França',
+                            telefone: '41 984402684',
+                            idade: 30,
+                            peso: 120,
+                            altura: 182,
+                        },
+                        {
+                            id: 2,
+                            nome: 'Pedro de Souza',
+                            telefone: '21 988878787',
+                            idade: 28,
+                            peso: 98,
+                            altura: 175,
+                        },
+                    ];
+                },
+                deletadarItem: null,
+                get itemASerDeletado() {
+                    return !!(this.deletadarItem)
+                        ? this.alunos?.find(item => item.id == this.deletadarItem)
+                        : null;
+                },
+                calculadoraIMC(altura, peso) {
+                    return peso / (altura * altura);
+                },
+                toggleDropDown() {
+                    if (this.openDropDown) {
+                        this.deletadarItem = null
+                    }
+
+                    this.openDropDown = !this.openDropDown
+                }
+            }"
+        >
+            <h1>Bootstrap 5.3.2</h1>
+            <div class="row">
+                <div class="col-12 p-3">
+                    <div class="col-12">
+                        <pre x-text="deletadarItem"></pre>
+                    </div>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Nome</th>
+                                <th scope="col">Telefone</th>
+                                <th scope="col" colspan="2">-</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template
+                                x-for="(aluno, alunoIndex) in alunos"
+                                x-key="alunoIndex"
+                            >
+                                <tr
+                                    x-data="{ openDropDown: false }"
+                                >
+                                    <th
+                                        scope="row"
+                                        x-text="aluno.id"
+                                    ></th>
+                                    <td
+                                        x-text="aluno.nome"
+                                    ></td>
+                                    <td
+                                        x-text="aluno.telefone"
+                                    ></td>
+                                    <td colspan="2">
+                                        <div class="dropdown d-grid gap-2">
+                                            <button
+                                                class="btn btn-sm"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                @click="toggleDropDown"
+
+                                                x-bind:class="{
+                                                    'btn-outline-secondary': !openDropDown,
+                                                    'btn-secondary': openDropDown,
+                                                }"
+                                            >
+                                                <svg
+                                                    style="max-width: 1rem;"
+                                                    fill="currentColor"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path d="M10.001 7.8a2.2 2.2 0 1 0 0 4.402A2.2 2.2 0 0 0 10 7.8zm-7 0a2.2 2.2 0 1 0 0 4.402A2.2 2.2 0 0 0 3 7.8zm14 0a2.2 2.2 0 1 0 0 4.402A2.2 2.2 0 0 0 17 7.8z"></path>
+                                                </svg>
+                                            </button>
+                                            <ul
+                                                class="dropdown-menu py-0 px-1"
+                                                x-bind:class="{
+                                                    'show': openDropDown,
+                                                }"
+                                                style=" margin: 0px; transform: translate(0px, 40px);right: 0rem;"
+                                            >
+                                                <li>
+                                                    <div class="dropdown-item d-grid gap-2 px-0">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-info"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dropdown-item d-grid gap-2 px-0">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-primary"
+                                                        >
+                                                            Detalhes
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dropdown-item d-grid gap-2 px-0">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-danger"
+                                                            @click="deletadarItem = aluno.id"
+                                                        >
+                                                            Deletar
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    <!-- Modal deletar -->
+                    <div
+                        class="modal fade"
+                        id="modalDeletar"
+                        tabindex="-1"
+                        aria-labelledby="modalDeletarLabel"
+                        aria-modal="true" role="dialog"
+                        x-show="deletadarItem"
+                        x-bind:class="{
+                            show: deletadarItem && itemASerDeletado,
+                            'd-block': deletadarItem && itemASerDeletado,
+                        }"
+                        style="background: #000000a6;"
+                    >
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title text-danger fs-5" id="modalDeletarLabel">
+                                  Excluir registro
+                                </h1>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                    @click="deletadarItem = null"
+                                ></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Tem certeza que deseja excluir o cadastro
+                                        <strong
+                                            x-text="itemASerDeletado?.nome"
+                                        ></strong>?
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal"
+                                    @click="deletadarItem = null"
+                                >Cancelar</button>
+                                <button type="button" class="btn btn-danger">Sim! Quero excluir esse registro</button>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                    <!-- FIM Modal deletar -->
+
+                    <!-- Modal editar -->
+                    <div
+                        class="modal fade"
+                        id="modalEditar"
+                        tabindex="-1"
+                        aria-labelledby="modalEditarLabel"
+                        aria-modal="true" role="dialog"
+                        style="background: #000000a6;"
+                    >
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h1 class="modal-title fs-5" id="modalEditarLabel">Modal title</h1>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Woo-hoo, you're reading this text in a modal!</p>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                              <button type="button" class="btn btn-primary">Save changes</button>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                    <!-- FIM Modal editar -->
+
+                    <!-- Modal cadastar -->
+                    <div
+                        class="modal fade"
+                        id="modalCadastrar"
+                        tabindex="-1"
+                        aria-labelledby="modalCadastrarLabel"
+                        aria-modal="true" role="dialog"
+                        style="background: #000000a6;"
+                    >
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h1 class="modal-title fs-5" id="modalCadastrarLabel">Modal title</h1>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Woo-hoo, you're reading this text in a modal!</p>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                              <button type="button" class="btn btn-primary">Save changes</button>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                    <!-- FIM Modal cadastar -->
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>

@@ -20,32 +20,51 @@
     <body>
         <div
             class="container-box px-3"
+            x-init="
+            alunosData = [
+                {
+                    id: 1,
+                    nome: 'Tiago França',
+                    telefone: '41 984402684',
+                    idade: 30,
+                    peso: 120,
+                    altura: 182,
+                },
+                {
+                    id: 2,
+                    nome: 'Pedro de Souza',
+                    telefone: '21 988878787',
+                    idade: 28,
+                    peso: 98,
+                    altura: 175,
+                },
+            ]
+            "
             x-data="{
+                alunosData: [],
                 get alunos() {
-                    return [
-                        {
-                            id: 1,
-                            nome: 'Tiago França',
-                            telefone: '41 984402684',
-                            idade: 30,
-                            peso: 120,
-                            altura: 182,
-                        },
-                        {
-                            id: 2,
-                            nome: 'Pedro de Souza',
-                            telefone: '21 988878787',
-                            idade: 28,
-                            peso: 98,
-                            altura: 175,
-                        },
-                    ];
+                    return this.alunosData;
                 },
                 deletadarItem: null,
                 get itemASerDeletado() {
                     return !!(this.deletadarItem)
                         ? this.alunos?.find(item => item.id == this.deletadarItem)
                         : null;
+                },
+                confirmarExclusaoDeitem() {
+                    if (!this.deletadarItem) {
+                        return;
+                    }
+
+                    this.alunosData = this.alunosData?.filter(item => item.id != this.deletadarItem);
+
+                    console.log(
+                        JSON.stringify(this.alunosData),
+                    );
+
+                    this.deletadarItem = null
+
+                    alert(`Item '${this.itemASerDeletado?.nome}' excluído com sucesso`);
                 },
                 calculadoraIMC(altura, peso) {
                     return peso / (altura * altura);
@@ -203,7 +222,13 @@
                                     data-bs-dismiss="modal"
                                     @click="deletadarItem = null"
                                 >Cancelar</button>
-                                <button type="button" class="btn btn-danger">Sim! Quero excluir esse registro</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-danger"
+                                    @click="confirmarExclusaoDeitem"
+                                >
+                                    Sim! Quero excluir esse registro
+                                </button>
                             </div>
                           </div>
                         </div>

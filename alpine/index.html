@@ -26,18 +26,32 @@
                 {
                     id: 1,
                     nome: 'Tiago França',
-                    telefone: '41 984402684',
+                    email: 'tiago@mail.com',
+                    telefone: '41 999940268',
                     idade: 30,
                     peso: 120,
-                    altura: 182,
+                    sexo: 'm',
+                    altura: 1.82,
                 },
                 {
                     id: 2,
                     nome: 'Pedro de Souza',
+                    email: 'pedro@mail.com',
                     telefone: '21 988878787',
                     idade: 28,
                     peso: 98,
-                    altura: 175,
+                    sexo: 'm',
+                    altura: 1.75,
+                },
+                {
+                    id: 3,
+                    nome: 'Maria de Souza',
+                    email: 'maria@mail.com',
+                    telefone: '22 9787878',
+                    idade: 29,
+                    peso: 75,
+                    sexo: 'f',
+                    altura: 1.68,
                 },
             ]
             "
@@ -53,7 +67,7 @@
                         : null;
                 },
                 confirmarExclusaoDeitem() {
-                    if (!this.deletarItem) {
+                    if (!(this.deletarItem)) {
                         this.toastError('Nenhum item identificado para ser deletado.');
                         return;
                     }
@@ -66,15 +80,51 @@
 
                     tempCopyItem && this.toastSuccess(`Item '${tempCopyItem?.nome}' excluído com sucesso`);
                 },
-                calculadoraIMC(altura, peso) {
-                    return peso / (altura * altura);
-                },
-                toggleDropDown() {
-                    if (this.openDropDown) {
-                        this.deletarItem = null
+
+                itemASerEditado: {},
+                editarItem(item) {
+                    if (!item || !(Object.keys(item || {}).length) || !(item?.id)) {
+                        this.toastError('Falha ao selecionar item.');
+                        return;
                     }
 
-                    this.openDropDown = !this.openDropDown
+                    this.itemASerEditado = JSON.parse(JSON.stringify(item));
+                },
+                confirmarAlteracaoDeItem() {
+                    if (!(Object.keys(this.itemASerEditado || {}).length) || !(this.itemASerEditado?.id)) {
+                        this.toastError('Nenhum item identificado para ser atualizado.');
+                        return;
+                    }
+
+                    let tempCopyItem = this.itemASerEditado;
+
+                    let alunoASerAtualizado = this.alunosData?.find(item => item.id == this.itemASerEditado?.id);
+
+                    if (!(Object.keys(alunoASerAtualizado || {}).length)) {
+                        this.toastError('Nenhum item identificado para ser atualizado.');
+                        return;
+                    }
+
+                    Object.keys(this.itemASerEditado).forEach(key => {
+                        let currentValue = (`${key}` in alunoASerAtualizado) ? alunoASerAtualizado[`${key}`] : null;
+
+                        alunoASerAtualizado[`${key}`] = this.itemASerEditado[`${key}`] || currentValue;
+                    });
+
+                    this.itemASerEditado = {};
+
+                    tempCopyItem && this.toastSuccess(`Item '${tempCopyItem?.id}' atualizado com sucesso`);
+                },
+
+                IMCAluno(aluno) {
+                    return aluno && Object.keys(aluno || {}).length
+                        ? this.calculadoraIMC(aluno.altura, aluno.peso)
+                        : null;
+                },
+
+                calculadoraIMC(altura, peso) {
+                    let result = (peso / (altura * altura));
+                    return result ? parseFloat(result.toFixed(2)) : '-';
                 },
                 toastInfo(message) {
                     Toastify({
@@ -102,11 +152,13 @@
                 },
             }"
         >
-            <h1>Bootstrap 5.3.2</h1>
+            <h1>Bootstrap + AlpineJS</h1>
+            <h2>Alunos de Personal Trainer</h2>
             <div class="row">
                 <div class="col-12 p-3">
                     <div class="col-12">
                         <pre x-text="deletarItem"></pre>
+                        <pre x-text="itemASerEditado && JSON.stringify(itemASerEditado)"></pre>
                     </div>
                     <table class="table table-striped table-hover">
                         <thead>
@@ -123,7 +175,16 @@
                                 x-key="alunoIndex"
                             >
                                 <tr
-                                    x-data="{ openDropDown: false }"
+                                    x-data="{
+                                        openDropDown: false,
+                                        toggleDropDown() {
+                                            if (this.openDropDown) {
+                                                this.deletarItem = null
+                                            }
+
+                                            this.openDropDown = !(this.openDropDown)
+                                        },
+                                    }"
                                 >
                                     <th
                                         scope="row"
@@ -170,6 +231,7 @@
                                                         <button
                                                             type="button"
                                                             class="btn btn-sm btn-info"
+                                                            @click="editarItem(aluno)"
                                                         >
                                                             Editar
                                                         </button>
@@ -266,47 +328,201 @@
                         tabindex="-1"
                         aria-labelledby="modalEditarLabel"
                         aria-modal="true" role="dialog"
-                        x-show="deletarItem"
+                        x-show="itemASerEditado?.id"
                         x-bind:class="{
-                            show: deletarItem && itemASerDeletado,
-                            'd-block': deletarItem && itemASerDeletado,
+                            show: itemASerEditado?.id,
+                            'd-block': itemASerEditado?.id,
                         }"
                         style="background: #000000a6;"
                     >
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-xl">
                           <div class="modal-content">
                             <div class="modal-header">
-                                <h1 class="modal-title text-danger fs-5" id="modalEditarLabel">
-                                  Excluir registro
+                                <h1 class="modal-title fs-5" id="modalEditarLabel">
+                                    Editando registro <strong>
+                                        <span x-text="`#${itemASerEditado?.id}`" ></span>
+                                        <span x-text="`(${itemASerEditado?.nome})`" ></span>
+                                    </strong>
                                 </h1>
                                 <button
                                     type="button"
                                     class="btn-close"
                                     data-bs-dismiss="modal"
                                     aria-label="Fechar"
-                                    @click="deletarItem = null"
+                                    @click="itemASerEditado = {}"
                                 ></button>
                             </div>
                             <div class="modal-body">
-                                <p>Tem certeza que deseja excluir o cadastro
-                                        <strong
-                                            x-text="itemASerDeletado?.nome"
-                                        ></strong>?
-                                </p>
+                                <form class="row g-3">
+                                    <div class="col-md-6">
+                                        <label
+                                            for="formEditarNome" class="form-label">Nome</label>
+                                        <input type="text" x-model="itemASerEditado.nome" class="form-control" id="formEditarNome">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="formEditarEmail" class="form-label">Email</label>
+                                        <input type="email" x-model="itemASerEditado.email" class="form-control" id="formEditarEmail">
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label
+                                                    for="formEditarTelefone" class="form-label">Telefone</label>
+                                                <input type="text" x-model="itemASerEditado.telefone" class="form-control" id="formEditarTelefone">
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label
+                                                    for="formEditarTelefone2" class="form-label">Telefone #2</label>
+                                                <input type="text" x-model="itemASerEditado.telefone2" class="form-control" id="formEditarTelefone2">
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label for="inputSexo" class="form-label">Sexo</label>
+                                                <select id="inputSexo" class="form-select">
+                                                    <option value="">Sexo</option>
+                                                    <option value="m">Masculino</option>
+                                                    <option value="f">Feminino</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label for="inputIdade" class="form-label">Idade</label>
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    id="inputIdade"
+                                                    placeholder="Idade"
+                                                    x-model="itemASerEditado.idade"
+                                                >
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label for="inputPeso" class="form-label">Peso</label>
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    id="inputPeso"
+                                                    placeholder="Peso"
+                                                    x-model="itemASerEditado.peso"
+                                                >
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label for="inputAltura" class="form-label">Altura</label>
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    id="inputAltura"
+                                                    placeholder="Altura"
+                                                    x-model="itemASerEditado.altura"
+                                                >
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label class="form-label">IMC</label>
+                                                <span
+                                                    class="form-control"
+                                                    x-text="IMCAluno(itemASerEditado)"
+                                                ></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="inputEndereco" class="form-label">Endereço</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="inputEndereco"
+                                            x-model="itemASerEditado.endereco"
+                                            placeholder="Rua Xyz, 123"
+                                        >
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="inputCidade" class="form-label">Cidade</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="inputCidade"
+                                            x-model="itemASerEditado.cidade"
+                                                                                    >
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="inputEstado" class="form-label">Estado</label>
+                                        <select id="inputEstado" class="form-select">
+                                            <option value="">Estado</option>
+                                            <option value="AC">Acre</option>
+                                            <option value="AL">Alagoas</option>
+                                            <option value="AP">Amapá</option>
+                                            <option value="AM">Amazonas</option>
+                                            <option value="BA">Bahia</option>
+                                            <option value="CE">Ceará</option>
+                                            <option value="DF">Distrito Federal</option>
+                                            <option value="ES">Espírito Santo</option>
+                                            <option value="GO">Goiás</option>
+                                            <option value="MA">Maranhão</option>
+                                            <option value="MT">Mato Grosso</option>
+                                            <option value="MS">Mato Grosso do Sul</option>
+                                            <option value="MG">Minas Gerais</option>
+                                            <option value="PA">Pará</option>
+                                            <option value="PB">Paraíba</option>
+                                            <option value="PR">Paraná</option>
+                                            <option value="PE">Pernambuco</option>
+                                            <option value="PI">Piauí</option>
+                                            <option value="RJ">Rio de Janeiro</option>
+                                            <option value="RN">Rio Grande do Norte</option>
+                                            <option value="RS">Rio Grande do Sul</option>
+                                            <option value="RO">Rondônia</option>
+                                            <option value="RR">Roraima</option>
+                                            <option value="SC">Santa Catarina</option>
+                                            <option value="SP">São Paulo</option>
+                                            <option value="SE">Sergipe</option>
+                                            <option value="TO">Tocantins</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label for="inputCEP" class="form-label">CEP</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="inputCEP"
+                                            x-model="itemASerEditado.cep"
+                                        >
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="gridCheck">
+                                            <label class="form-check-label" for="gridCheck">
+                                                É cliente?
+                                            </label>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                             <div class="modal-footer">
                                 <button
                                     type="button"
                                     class="btn btn-outline-secondary"
                                     data-bs-dismiss="modal"
-                                    @click="deletarItem = null"
+                                    @click="itemASerEditado = {}"
                                 >Cancelar</button>
                                 <button
                                     type="button"
-                                    class="btn btn-danger"
-                                    @click="confirmarExclusaoDeitem"
+                                    class="btn btn-success"
+                                    @click="confirmarAlteracaoDeItem"
                                 >
-                                    Sim! Quero excluir esse registro
+                                    Salvar
                                 </button>
                             </div>
                           </div>
@@ -323,7 +539,7 @@
                         aria-modal="true" role="dialog"
                         style="background: #000000a6;"
                     >
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-xl">
                           <div class="modal-content">
                             <div class="modal-header">
                               <h1 class="modal-title fs-5" id="modalCadastrarLabel">Modal title</h1>
